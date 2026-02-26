@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Control Center | Patel Traders</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800;900&display=swap');
+        :root { --bhagwa: #ff9933; --bg-dark: #080a0f; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-dark); color: #ffffff; margin: 0; min-height: 100vh; }
+        
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 153, 51, 0.2); border-radius: 20px; }
+        .m-input { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 12px; width: 100%; color: white; outline: none; transition: 0.3s; font-size: 14px; }
+        .m-input:focus { border-color: var(--bhagwa); background: rgba(255, 255, 255, 0.08); }
+        .btn-bhagwa { background: linear-gradient(135deg, #ff9933, #cc5500); color: white; font-weight: 800; text-transform: uppercase; border-radius: 12px; padding: 14px; width: 100%; cursor: pointer; border: none; transition: 0.2s; }
+        .btn-bhagwa:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Modals & Animations */
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); display: none; padding: 20px;}
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide { animation: slideUp 0.4s ease-out forwards; }
+        
+        /* 🎯 Animations for Welcome Screen */
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse-glow { 0% { box-shadow: 0 0 0 0 rgba(255, 153, 51, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(255, 153, 51, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 153, 51, 0); } }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 153, 51, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="adminWelcomeScreen" class="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6 text-center" style="background: #080a0f;">
+        <div class="mb-10" style="animation: fadeInDown 1s ease-out;">
+            <img src="https://i.ibb.co/C30Ybjck/PT-20250224-170650-0000.png" class="w-32 mx-auto rounded-[40px] shadow-[0_20px_50px_rgba(255,153,51,0.3)] border-2 border-[#ff9933]/50 mb-6" crossorigin="anonymous">
+            <h4 class="text-[#ff9933] font-black uppercase tracking-[5px] text-xs mb-2">Patel Traders Admin Portal</h4>
+            <h1 class="text-2xl md:text-4xl font-black text-white uppercase italic leading-tight mb-4">
+                Welcome to the <br> <span class="text-[#ff9933]">Customer Management System</span>
+            </h1>
+            <p class="text-white/40 text-[10px] font-bold tracking-[4px] uppercase">Authorized Personnel Only</p>
+        </div>
+        <button onclick="document.getElementById('adminWelcomeScreen').style.display='none';" class="btn-bhagwa px-12 py-5 max-w-sm w-full" style="animation: pulse-glow 2s infinite; letter-spacing: 3px;">Enter Admin Portal →</button>
+    </div>
+    <div id="loginScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center p-6" style="background: #080a0f;">
+        <div class="glass-card p-8 w-full max-w-sm text-center border-t-4 border-[#ff9933] shadow-[0_0_50px_rgba(255,153,51,0.1)]">
+            <img src="https://i.ibb.co/C30Ybjck/PT-20250224-170650-0000.png" class="w-20 mx-auto rounded-2xl mb-4">
+            <h2 class="text-2xl font-black uppercase text-[#ff9933] mb-1">Admin Security</h2>
+            <p class="text-[10px] text-white/50 tracking-[3px] uppercase mb-6 font-bold">Please Verify Your Identity</p>
+            <input type="password" id="adminPass" placeholder="ENTER 4-DIGIT PIN" class="m-input text-center text-xl tracking-[8px] mb-4 font-black">
+            <button onclick="checkLogin()" class="btn-bhagwa">Unlock Dashboard</button>
+        </div>
+    </div>
+
+    <div id="dashboardScreen" style="display: none; max-w-7xl; margin: 0 auto;">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 bg-white/5 p-6 rounded-[24px] border border-white/10">
+            <div class="flex items-center gap-4">
+                <img src="https://i.ibb.co/C30Ybjck/PT-20250224-170650-0000.png" class="w-16 rounded-2xl border border-white/10 shadow-lg">
+                <div>
+                    <h1 class="text-2xl font-black uppercase italic">Master Control</h1>
+                    <p class="text-[10px] text-[#ff9933] font-bold tracking-[3px]">TICKET MANAGEMENT SYSTEM</p>
+                </div>
+            </div>
+            
+            <div class="flex gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+                <div class="bg-black/40 px-5 py-3 rounded-xl border border-white/5 text-center min-w-[100px]">
+                    <p class="text-[9px] text-white/50 uppercase font-bold tracking-widest mb-1">Pending</p>
+                    <p id="statPending" class="text-xl font-black text-orange-400">0</p>
+                </div>
+                <div class="bg-black/40 px-5 py-3 rounded-xl border border-white/5 text-center min-w-[100px]">
+                    <p class="text-[9px] text-white/50 uppercase font-bold tracking-widest mb-1">Successful</p>
+                    <p id="statResolved" class="text-xl font-black text-emerald-400">0</p>
+                </div>
+                <button onclick="loadData()" id="refreshBtn" class="bg-[#ff9933]/10 text-[#ff9933] px-6 py-3 rounded-xl font-black uppercase text-xs border border-[#ff9933]/30 hover:bg-[#ff9933]/20 transition h-full flex items-center justify-center min-w-[140px]">
+                    🔄 Sync Data
+                </button>
+            </div>
+        </div>
+
+        <div class="flex gap-2 overflow-x-auto pb-4 mb-4">
+            <button onclick="filterTickets('ALL')" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition min-w-max">All Requests</button>
+            <button onclick="filterTickets('PENDING')" class="bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition min-w-max">Pending</button>
+            <button onclick="filterTickets('RESOLVED')" class="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition min-w-max">Successful</button>
+            <button onclick="filterTickets('REJECTED')" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition min-w-max">Rejected</button>
+        </div>
+
+        <div id="dataGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-10">
+            </div>
+
+    </div>
+
+    <div id="actionModal" class="modal-bg">
+        <div class="glass-card p-6 md:p-8 w-full max-w-lg animate-slide border-t-4 border-[#ff9933] bg-[#080a0f] shadow-2xl relative">
+            
+            <button onclick="closeModal()" class="absolute top-6 right-6 text-white/40 hover:text-white text-xl font-black transition">✕</button>
+            
+            <div class="mb-6 border-b border-white/10 pb-4">
+                <p class="text-[10px] text-white/50 font-bold uppercase tracking-widest mb-1">Update Service Request</p>
+                <h2 id="modTicketId" class="text-3xl font-black text-[#ff9933] tracking-widest">SRN-XXXXX</h2>
+            </div>
+            
+            <div class="space-y-5">
+                <div class="bg-white/5 p-4 rounded-xl border border-white/5">
+                    <label class="text-[10px] text-white/60 font-black uppercase tracking-widest block mb-2">1. Mark Final Status</label>
+                    <select id="modStatus" class="m-input font-black uppercase text-sm bg-black/50 border-white/10">
+                        <option value="PENDING" class="text-orange-400">🟡 Pending (Reviewing)</option>
+                        <option value="RESOLVED" class="text-emerald-400">🟢 Successful (Resolved)</option>
+                        <option value="REJECTED" class="text-rose-400">🔴 Rejected (Unsuccessful)</option>
+                    </select>
+                </div>
+
+                <div class="bg-white/5 p-4 rounded-xl border border-white/5">
+                    <div class="flex justify-between items-end mb-2">
+                        <label class="text-[10px] text-white/60 font-black uppercase tracking-widest">2. Admin Note / Reason</label>
+                        <span class="bg-emerald-500/20 text-emerald-400 text-[8px] font-black px-2 py-1 rounded border border-emerald-500/30 tracking-widest uppercase flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            Auto-Verified Stamp
+                        </span>
+                    </div>
+                    <textarea id="modReason" placeholder="Write reason for success or rejection. This will be visible to the customer..." class="m-input h-28 resize-none text-sm bg-black/50 border-white/10 leading-relaxed"></textarea>
+                    <p class="text-[9px] text-white/40 font-bold mt-2 text-right italic">* "Manually Verified by Admin" tag will be attached automatically.</p>
+                </div>
+                
+                <button id="modSaveBtn" onclick="saveUpdate()" class="btn-bhagwa mt-4 py-4 text-sm tracking-widest">Secure Update Database</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ✅ Live API URL
+        const CMS_API_URL = "https://script.google.com/macros/s/AKfycbz4Hb7nd0grSl035BDTYurW8WBU_IJZJG_5U4qXpa07l71sAxJiDlPjUYlVq8uePZEC/exec"; 
+        
+        // 🔐 UPDATE: Admin PIN Changed
+        const ADMIN_PIN = "7314";
+
+        let allData = [];
+        let currentTicket = null;
+
+        function checkLogin() {
+            if(document.getElementById('adminPass').value === ADMIN_PIN) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboardScreen').style.display = 'block';
+                loadData();
+            } else {
+                alert("❌ Access Denied: Incorrect PIN");
+                document.getElementById('adminPass').value = '';
+            }
+        }
+
+        async function loadData() {
+            const grid = document.getElementById('dataGrid');
+            const btn = document.getElementById('refreshBtn');
+            btn.innerHTML = "Syncing...";
+            grid.innerHTML = "<div class='col-span-full flex justify-center py-20'><div class='w-8 h-8 border-4 border-[#ff9933] border-t-transparent rounded-full animate-spin'></div></div>";
+
+            try {
+                const res = await fetch(`${CMS_API_URL}?action=getComplaints&t=${Date.now()}`);
+                const data = await res.json();
+                allData = data.reverse(); 
+                
+                document.getElementById('statPending').innerText = allData.filter(c => c.status === "PENDING").length;
+                document.getElementById('statResolved').innerText = allData.filter(c => c.status === "RESOLVED").length;
+                
+                renderGrid(allData);
+            } catch (e) {
+                grid.innerHTML = "<p class='col-span-full text-center text-rose-500 font-bold'>❌ Connection Error. Unable to fetch data.</p>";
+            }
+            btn.innerHTML = "🔄 Sync Data";
+        }
+
+        function filterTickets(status) {
+            if(status === 'ALL') renderGrid(allData);
+            else renderGrid(allData.filter(c => c.status === status));
+        }
+
+        function renderGrid(data) {
+            const grid = document.getElementById('dataGrid');
+            if(data.length === 0) {
+                grid.innerHTML = "<p class='col-span-full text-center text-white/50 py-10 font-bold uppercase tracking-widest'>No records found in this category.</p>";
+                return;
+            }
+
+            grid.innerHTML = data.map(c => {
+                let color = "orange"; 
+                let statusLabel = "PENDING";
+                
+                if(c.status === "RESOLVED") { color = "emerald"; statusLabel = "SUCCESSFUL"; }
+                else if(c.status === "IN PROGRESS") { color = "blue"; statusLabel = "WORKING"; }
+                else if(c.status === "REJECTED") { color = "rose"; statusLabel = "REJECTED"; }
+
+                let displayReason = c.reason ? c.reason : '';
+
+                return `
+                <div class="glass-card p-6 relative overflow-hidden group shadow-lg hover:border-white/20 transition-all">
+                    <div class="absolute left-0 top-0 w-1 h-full bg-${color}-500"></div>
+                    
+                    <div class="flex justify-between items-start mb-4 border-b border-white/5 pb-3">
+                        <span class="bg-${color}-500/10 text-${color}-400 text-[9px] font-black px-3 py-1.5 rounded uppercase tracking-widest border border-${color}-500/20">${statusLabel}</span>
+                        <span class="text-[9px] text-white/40 font-bold tracking-widest">${c.date.split(',')[0]}</span>
+                    </div>
+                    
+                    <p class="text-[9px] text-white/50 uppercase font-black tracking-widest mb-1">SRN / Ticket ID</p>
+                    <h3 class="text-xl font-black text-[#ff9933] mb-3 tracking-widest">${c.ticket}</h3>
+                    
+                    <div class="bg-black/50 p-4 rounded-xl mb-4 border border-white/5">
+                        <p class="text-[10px] text-white/40 font-bold mb-2 uppercase tracking-wider">Customer Details</p>
+                        <p class="text-xs text-white/90 font-bold mb-1">👤 ${c.name}</p>
+                        <p class="text-xs text-white/90 font-bold mb-3">📞 ${c.phone} ${c.email !== 'N/A' ? `| ✉️ ${c.email}` : ''}</p>
+                        <p class="text-[9px] text-[#ff9933] uppercase font-black mb-1 border-t border-white/10 pt-2 mt-2">Issue: ${c.type}</p>
+                        <p class="text-xs text-white/60 italic leading-relaxed line-clamp-3">"${c.description}"</p>
+                    </div>
+
+                    ${c.reason ? `
+                        <div class="bg-${color}-500/5 p-3 rounded-lg border border-${color}-500/10 mb-4">
+                            <p class="text-[8px] text-${color}-400 uppercase font-black tracking-widest mb-1">Admin Note Recorded</p>
+                            <p class="text-[11px] text-white/80 font-bold leading-relaxed line-clamp-2">${c.reason}</p>
+                        </div>
+                    ` : ''}
+
+                    <button onclick="openModal('${c.ticket}', '${c.status}', \`${c.reason ? c.reason.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}\`)" class="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition border border-white/10 text-white">Update Status & Reason</button>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // 🛠️ Action Modal Functions
+        function openModal(ticket, currentStatus, currentReason) {
+            currentTicket = ticket;
+            document.getElementById('modTicketId').innerText = ticket;
+            document.getElementById('modStatus').value = currentStatus;
+            
+            let cleanReason = currentReason;
+            if(cleanReason.includes("✅ Manually Verified by Admin: ")) {
+                cleanReason = cleanReason.replace("✅ Manually Verified by Admin: ", "");
+            }
+            
+            document.getElementById('modReason').value = cleanReason;
+            document.getElementById('actionModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('actionModal').style.display = 'none';
+            currentTicket = null;
+        }
+
+        async function saveUpdate() {
+            const newStatus = document.getElementById('modStatus').value;
+            let rawReason = document.getElementById('modReason').value.trim();
+            const btn = document.getElementById('modSaveBtn');
+
+            if(rawReason === '') {
+                return alert("⚠️ Please provide a clear 'Reason' for making this status update.");
+            }
+
+            btn.innerText = "Encrypting & Saving...";
+            btn.disabled = true;
+
+            let finalReason = `✅ Manually Verified by Admin: ${rawReason}`;
+
+            const payload = {
+                action: "UPDATE_COMPLAINT",
+                ticket: currentTicket,
+                status: newStatus,
+                reason: finalReason
+            };
+
+            try {
+                await fetch(CMS_API_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify(payload) 
+                });
+                
+                closeModal();
+                loadData(); 
+                
+                setTimeout(() => {
+                    alert(`✅ SUCCESS: SRN ${currentTicket} updated. Customer will now see the verified status.`);
+                }, 500);
+
+            } catch (e) {
+                alert("❌ Network Error: Failed to update database.");
+            }
+            
+            btn.innerText = "Secure Update Database";
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
