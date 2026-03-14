@@ -3,290 +3,550 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin Control Center | Patel Traders</title>
+    <title>Admin Resolution Vault | Patel Traders</title>
     
+    <script>
+        if(localStorage.getItem('pt_admin_supp_seen') === 'true') {
+            document.write('<style id="fast-cache">#welcome-screen { display: none !important; }</style>');
+        }
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800;900&display=swap');
-        :root { --bhagwa: #ff9933; --bg-dark: #080a0f; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-dark); color: #ffffff; margin: 0; min-height: 100vh; }
+        :root { --bhagwa: #ff9933; --bg-superdark: #03050a; }
         
-        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 153, 51, 0.2); border-radius: 20px; }
-        .m-input { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 12px; width: 100%; color: white; outline: none; transition: 0.3s; font-size: 14px; }
-        .m-input:focus { border-color: var(--bhagwa); background: rgba(255, 255, 255, 0.08); }
-        .btn-bhagwa { background: linear-gradient(135deg, #ff9933, #cc5500); color: white; font-weight: 800; text-transform: uppercase; border-radius: 12px; padding: 14px; width: 100%; cursor: pointer; border: none; transition: 0.2s; }
-        .btn-bhagwa:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        /* Modals & Animations */
-        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); display: none; padding: 20px;}
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-slide { animation: slideUp 0.4s ease-out forwards; }
-        
-        /* 🎯 Animations for Welcome Screen */
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse-glow { 0% { box-shadow: 0 0 0 0 rgba(255, 153, 51, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(255, 153, 51, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 153, 51, 0); } }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-superdark); 
+            color: white; 
+            margin: 0; 
+            overflow-x: hidden; 
+            min-height: 100vh;
+        }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 153, 51, 0.3); border-radius: 10px; }
-        ::-webkit-scrollbar-track { background: transparent; }
+        .bg-aurora { position: fixed; inset: 0; z-index: -2; background: var(--bg-superdark); overflow: hidden; }
+        .bg-aurora::after {
+            content: ''; position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(255, 153, 51, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 153, 51, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px; opacity: 0.5; z-index: -1;
+        }
+        .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.35; animation: floatOrb 20s infinite alternate ease-in-out; pointer-events: none; }
+        .orb-1 { width: 500px; height: 500px; background: var(--bhagwa); top: -10%; left: -10%; }
+        .orb-2 { width: 600px; height: 600px; background: #9333ea; bottom: -20%; right: -10%; animation-delay: -5s; }
+        @keyframes floatOrb { 0% { transform: translate(0, 0) scale(1) rotate(0deg); } 100% { transform: translate(80px, 80px) scale(1.3) rotate(20deg); } }
+
+        .glass-card { background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)); backdrop-filter: blur(25px); border: 1px solid rgba(255, 153, 51, 0.2); border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.05); }
+        .m-input { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 14px 16px; width: 100%; color: white; outline: none; transition: all 0.3s; font-size: 13px; font-weight: 600; }
+        .m-input:focus { border-color: #ff9933; background: rgba(0,0,0,0.6); box-shadow: 0 0 0 3px rgba(255, 153, 51, 0.15); }
+        
+        .btn-bhagwa { background: linear-gradient(135deg, #ff9933, #e65c00); color: white; font-weight: 800; text-transform: uppercase; border-radius: 12px; padding: 14px; width: 100%; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(255, 153, 51, 0.3); transition: all 0.2s; letter-spacing: 1px; }
+        .btn-bhagwa:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(255, 153, 51, 0.4); }
+        .btn-bhagwa:active { transform: scale(0.97); }
+        .btn-bhagwa:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .locked-screen { pointer-events: none; filter: grayscale(1) blur(10px); opacity: 0.2; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,153,51,0.5); border-radius: 10px; }
+
+        @keyframes popModal { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .animate-pop { animation: popModal 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        /* Hidden PDF Renderers */
+        #hidden-report-wrapper { position: fixed; top: 0; left: 0; opacity: 0.01; z-index: -100; pointer-events: none; display: none; justify-content: center; width: 100%; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body>
 
-    <div id="adminWelcomeScreen" class="fixed inset-0 z-[60] flex flex-col items-center justify-center p-6 text-center" style="background: #080a0f;">
-        <div class="mb-10" style="animation: fadeInDown 1s ease-out;">
-            <img src="https://i.ibb.co/C30Ybjck/PT-20250224-170650-0000.png" class="w-32 mx-auto rounded-[40px] shadow-[0_20px_50px_rgba(255,153,51,0.3)] border-2 border-[#ff9933]/50 mb-6" crossorigin="anonymous">
-            <h4 class="text-[#ff9933] font-black uppercase tracking-[5px] text-xs mb-2">Patel Traders Admin Portal</h4>
-            <h1 class="text-2xl md:text-4xl font-black text-white uppercase italic leading-tight mb-4">
-                Welcome to the <br> <span class="text-[#ff9933]">Customer Management System</span>
-            </h1>
-            <p class="text-white/40 text-[10px] font-bold tracking-[4px] uppercase">Authorized Personnel Only</p>
-        </div>
-        <button onclick="document.getElementById('adminWelcomeScreen').style.display='none';" class="btn-bhagwa px-12 py-5 max-w-sm w-full" style="animation: pulse-glow 2s infinite; letter-spacing: 3px;">Enter Admin Portal →</button>
-    </div>
-    <div id="loginScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center p-6" style="background: #080a0f;">
-        <div class="glass-card p-8 w-full max-w-sm text-center border-t-4 border-[#ff9933] shadow-[0_0_50px_rgba(255,153,51,0.1)]">
-            <img src="https://i.ibb.co/C30Ybjck/PT-20250224-170650-0000.png" class="w-20 mx-auto rounded-2xl mb-4">
-            <h2 class="text-2xl font-black uppercase text-[#ff9933] mb-1">Admin Security</h2>
-            <p class="text-[10px] text-white/50 tracking-[3px] uppercase mb-6 font-bold">Please Verify Your Identity</p>
-            <input type="password" id="adminPass" placeholder="ENTER 4-DIGIT PIN" class="m-input text-center text-xl tracking-[8px] mb-4 font-black">
-            <button onclick="checkLogin()" class="btn-bhagwa">Unlock Dashboard</button>
+    <div class="bg-aurora"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+
+    <div id="custom-modal" class="fixed inset-0 bg-black/80 backdrop-blur-xl z-[99999] hidden flex-col items-center justify-center p-4 transition-opacity">
+        <div class="glass-card p-8 max-w-sm w-full text-center animate-pop" id="cm-card">
+            <div id="cm-icon" class="mb-6 flex justify-center"></div>
+            <h2 id="cm-title" class="text-xl font-black uppercase tracking-widest mb-2">Title</h2>
+            <p id="cm-msg" class="text-xs text-white/70 font-medium mb-8 leading-relaxed">Message</p>
+            <button onclick="closeCustomModal()" class="w-full py-4 bg-white/10 hover:bg-white/20 rounded-xl font-black text-white uppercase tracking-widest transition">Okay</button>
         </div>
     </div>
 
-    <div id="dashboardScreen" style="display: none; max-w-7xl; margin: 0 auto;">
+    <div id="welcome-screen" class="fixed inset-0 z-[11000] bg-[#03050a]/90 backdrop-blur-2xl flex items-center justify-center p-4 transition-opacity">
+        <div class="glass-card p-10 text-center max-w-sm w-full border-t-4 border-[#ff9933]">
+            <img src="https://i.ibb.co/G4xsrr6j/qafx-Ln-R-md.png" alt="Logo" class="w-24 mx-auto mb-6 drop-shadow-[0_10px_20px_rgba(255,153,51,0.4)]" crossorigin="anonymous">
+            <h1 class="text-2xl font-black uppercase tracking-widest text-white mb-2">Support Vault</h1>
+            <p class="text-[#ff9933] text-[10px] font-bold tracking-[3px] uppercase mb-8">Admin Resolution Center</p>
+            <button onclick="initSystem()" class="btn-bhagwa">Initialize Vault</button>
+        </div>
+    </div>
+
+    <div id="security-lock" class="fixed inset-0 bg-black/90 backdrop-blur-3xl z-[9999] flex-col items-center justify-center" style="display: none;">
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 mx-auto mb-4 bg-[#0f172a] rounded-full flex items-center justify-center border-2 border-[#ff9933] shadow-[0_0_30px_rgba(255,153,51,0.3)]">
+                <svg class="w-8 h-8 text-[#ff9933]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h2 id="lockStatus" class="text-xl font-black uppercase text-white tracking-widest">Vault Locked</h2>
+            <p id="lockMsg" class="text-[#ff9933] text-[10px] mt-2 font-bold tracking-[2px] uppercase">Enter Admin PIN</p>
+        </div>
+        <div id="pinDots" class="flex gap-4 mb-10"><div class="w-4 h-4 rounded-full border-2 border-white/20"></div><div class="w-4 h-4 rounded-full border-2 border-white/20"></div><div class="w-4 h-4 rounded-full border-2 border-white/20"></div><div class="w-4 h-4 rounded-full border-2 border-white/20"></div></div>
+        <div id="numpad" class="grid grid-cols-3 gap-4 w-full max-w-[260px]">
+            <script>for(let i=1;i<=9;i++) document.write(`<button onclick="pressPin('${i}')" class="py-5 glass-card font-black text-2xl text-white rounded-2xl hover:bg-white/10 active:bg-[#ff9933] transition">${i}</button>`)</script>
+            <button onclick="clearPin()" class="py-5 text-rose-500 font-bold hover:bg-rose-500/20 rounded-2xl transition tracking-widest text-xs uppercase">CLR</button>
+            <button onclick="pressPin('0')" class="py-5 glass-card font-black text-2xl text-white rounded-2xl hover:bg-white/10 active:bg-[#ff9933] transition">0</button>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden w-full max-w-6xl mx-auto py-6 px-4">
         
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 bg-white/5 p-6 rounded-[24px] border border-white/10">
+        <div class="flex justify-between items-center mb-6 bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md">
             <div class="flex items-center gap-4">
-                <img src="https://i.ibb.co/C30Ybjck/PT-20250224-170650-0000.png" class="w-16 rounded-2xl border border-white/10 shadow-lg">
+                <img src="https://i.ibb.co/G4xsrr6j/qafx-Ln-R-md.png" class="w-12 h-12 object-contain" crossorigin="anonymous">
                 <div>
-                    <h1 class="text-2xl font-black uppercase italic">Master Control</h1>
-                    <p class="text-[10px] text-[#ff9933] font-bold tracking-[3px]">TICKET MANAGEMENT SYSTEM</p>
+                    <h1 class="text-lg font-black uppercase tracking-widest text-white">Support Admin</h1>
+                    <p class="text-emerald-400 text-[9px] font-bold tracking-[2px] uppercase">● Live Network</p>
                 </div>
             </div>
+            <div class="flex gap-3">
+                <button onclick="fetchTickets()" class="px-4 py-2.5 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-xl text-[10px] font-black uppercase hover:bg-blue-500 hover:text-white transition">↻ Refresh</button>
+                <button onclick="window.location.reload()" class="px-4 py-2.5 bg-rose-500/10 border border-rose-500/30 text-rose-500 rounded-xl text-[10px] font-black uppercase hover:bg-rose-500 hover:text-white transition">Lock Vault</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div class="glass-card p-4 border-l-4 border-orange-500 flex flex-col justify-center">
+                <p class="text-[9px] uppercase font-black text-white/50 tracking-widest mb-1">Pending</p>
+                <h2 id="sPending" class="text-3xl font-black text-orange-400">0</h2>
+            </div>
+            <div class="glass-card p-4 border-l-4 border-emerald-500 flex flex-col justify-center">
+                <p class="text-[9px] uppercase font-black text-white/50 tracking-widest mb-1">Resolved</p>
+                <h2 id="sResolved" class="text-3xl font-black text-emerald-400">0</h2>
+            </div>
             
-            <div class="flex gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-                <div class="bg-black/40 px-5 py-3 rounded-xl border border-white/5 text-center min-w-[100px]">
-                    <p class="text-[9px] text-white/50 uppercase font-bold tracking-widest mb-1">Pending</p>
-                    <p id="statPending" class="text-xl font-black text-orange-400">0</p>
-                </div>
-                <div class="bg-black/40 px-5 py-3 rounded-xl border border-white/5 text-center min-w-[100px]">
-                    <p class="text-[9px] text-white/50 uppercase font-bold tracking-widest mb-1">Successful</p>
-                    <p id="statResolved" class="text-xl font-black text-emerald-400">0</p>
-                </div>
-                <button onclick="loadData()" id="refreshBtn" class="bg-[#ff9933]/10 text-[#ff9933] px-6 py-3 rounded-xl font-black uppercase text-xs border border-[#ff9933]/30 hover:bg-[#ff9933]/20 transition h-full flex items-center justify-center min-w-[140px]">
-                    🔄 Sync Data
+            <div class="glass-card p-4 border-l-4 border-rose-600 bg-rose-900/20 flex flex-col justify-center relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-16 h-16 bg-rose-600/30 rounded-full blur-xl"></div>
+                <p class="text-[9px] uppercase font-black text-rose-300 tracking-widest mb-1 relative z-10">Complaint Score</p>
+                <h2 id="sScore" class="text-3xl font-black text-rose-500 shadow-rose-500/50 drop-shadow-xl relative z-10">0</h2>
+            </div>
+            
+            <div class="glass-card p-4 border-l-4 border-purple-500 flex flex-col justify-center items-center">
+                <button onclick="downloadStatementPDF()" id="btnDownloadPDF" class="w-full py-3.5 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-xl font-black uppercase text-[10px] shadow-[0_5px_15px_rgba(168,85,247,0.3)] hover:scale-[1.02] transition tracking-widest">
+                    Extract PDF
                 </button>
             </div>
         </div>
 
-        <div class="flex gap-2 overflow-x-auto pb-4 mb-4">
-            <button onclick="filterTickets('ALL')" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition min-w-max">All Requests</button>
-            <button onclick="filterTickets('PENDING')" class="bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition min-w-max">Pending</button>
-            <button onclick="filterTickets('RESOLVED')" class="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition min-w-max">Successful</button>
-            <button onclick="filterTickets('REJECTED')" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition min-w-max">Rejected</button>
+        <div class="mb-6">
+            <input type="text" id="searchInput" onkeyup="filterTickets()" placeholder="Search SRN or Mobile..." class="m-input py-3 text-xs w-full">
         </div>
 
-        <div id="dataGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-10">
+        <div id="ticketsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto custom-scroll pr-2" style="max-height: 55vh;">
+            <div class="col-span-full text-center py-10">
+                <p class="text-[#ff9933] text-xs font-black uppercase tracking-widest animate-pulse">Decrypting Support Database...</p>
             </div>
+        </div>
 
     </div>
 
-    <div id="actionModal" class="modal-bg">
-        <div class="glass-card p-6 md:p-8 w-full max-w-lg animate-slide border-t-4 border-[#ff9933] bg-[#080a0f] shadow-2xl relative">
+    <div id="actionModal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[50000] hidden items-center justify-center p-4">
+        <div class="glass-card w-full max-w-lg overflow-hidden border-t-4 border-blue-500 flex flex-col max-h-[90vh]">
             
-            <button onclick="closeModal()" class="absolute top-6 right-6 text-white/40 hover:text-white text-xl font-black transition">✕</button>
-            
-            <div class="mb-6 border-b border-white/10 pb-4">
-                <p class="text-[10px] text-white/50 font-bold uppercase tracking-widest mb-1">Update Service Request</p>
-                <h2 id="modTicketId" class="text-3xl font-black text-[#ff9933] tracking-widest">SRN-XXXXX</h2>
+            <div class="p-5 bg-black/40 flex justify-between items-center border-b border-white/10 shrink-0">
+                <div>
+                    <h2 id="mSrn" class="text-[#ff9933] font-black tracking-widest text-lg">PT-C-XXXXX</h2>
+                    <p id="mType" class="text-white/50 text-[10px] uppercase font-bold tracking-widest">Category</p>
+                </div>
+                <button onclick="closeActionModal()" class="w-8 h-8 flex items-center justify-center bg-rose-500/20 text-rose-500 rounded-lg hover:bg-rose-500 hover:text-white transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
-            
-            <div class="space-y-5">
-                <div class="bg-white/5 p-4 rounded-xl border border-white/5">
-                    <label class="text-[10px] text-white/60 font-black uppercase tracking-widest block mb-2">1. Mark Final Status</label>
-                    <select id="modStatus" class="m-input font-black uppercase text-sm bg-black/50 border-white/10">
-                        <option value="PENDING" class="text-orange-400">🟡 Pending (Reviewing)</option>
-                        <option value="RESOLVED" class="text-emerald-400">🟢 Successful (Resolved)</option>
-                        <option value="REJECTED" class="text-rose-400">🔴 Rejected (Unsuccessful)</option>
+
+            <div class="p-5 overflow-y-auto custom-scroll space-y-4">
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="bg-white/5 p-3 rounded-xl border border-white/10"><p class="text-[9px] text-white/40 uppercase mb-1">Customer</p><p id="mName" class="font-bold text-white truncate">--</p></div>
+                    <div class="bg-white/5 p-3 rounded-xl border border-white/10"><p class="text-[9px] text-white/40 uppercase mb-1">Mobile</p><p id="mPhone" class="font-mono text-emerald-400 font-bold">--</p></div>
+                </div>
+
+                <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                    <p class="text-[9px] text-white/40 uppercase font-black tracking-widest mb-2">Customer Description</p>
+                    <p id="mDesc" class="text-white/80 text-xs italic leading-relaxed">--</p>
+                </div>
+
+                <div id="mImgBox" class="hidden bg-black/50 p-2 rounded-xl border border-white/10 text-center">
+                    <p class="text-[9px] text-white/40 uppercase font-black tracking-widest mb-2 mt-1">Attached Proof</p>
+                    <img id="mImg" src="" class="max-w-full max-h-48 mx-auto rounded-lg object-contain cursor-pointer" onclick="window.open(this.src)" title="Click to view full size">
+                </div>
+
+                <hr class="border-white/10 my-2">
+
+                <div>
+                    <label class="text-[9px] uppercase font-black text-blue-400 tracking-widest ml-1">Update Status</label>
+                    <select id="aStatus" class="m-input mt-1">
+                        <option value="PENDING">PENDING (No Action Yet)</option>
+                        <option value="IN PROGRESS">IN PROGRESS (Working on it)</option>
+                        <option value="RESOLVED">RESOLVED (Issue Fixed)</option>
+                        <option value="REJECTED">REJECTED (Invalid Request)</option>
                     </select>
                 </div>
 
-                <div class="bg-white/5 p-4 rounded-xl border border-white/5">
-                    <div class="flex justify-between items-end mb-2">
-                        <label class="text-[10px] text-white/60 font-black uppercase tracking-widest">2. Admin Note / Reason</label>
-                        <span class="bg-emerald-500/20 text-emerald-400 text-[8px] font-black px-2 py-1 rounded border border-emerald-500/30 tracking-widest uppercase flex items-center gap-1">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                            Auto-Verified Stamp
-                        </span>
-                    </div>
-                    <textarea id="modReason" placeholder="Write reason for success or rejection. This will be visible to the customer..." class="m-input h-28 resize-none text-sm bg-black/50 border-white/10 leading-relaxed"></textarea>
-                    <p class="text-[9px] text-white/40 font-bold mt-2 text-right italic">* "Manually Verified by Admin" tag will be attached automatically.</p>
+                <div>
+                    <label class="text-[9px] uppercase font-black text-blue-400 tracking-widest ml-1">Admin Remarks (Visible to Customer)</label>
+                    <textarea id="aRemarks" placeholder="Write resolution details or reason here..." class="m-input mt-1 h-24 resize-none"></textarea>
                 </div>
-                
-                <button id="modSaveBtn" onclick="saveUpdate()" class="btn-bhagwa mt-4 py-4 text-sm tracking-widest">Secure Update Database</button>
+            </div>
+
+            <div class="p-5 bg-black/40 border-t border-white/10 shrink-0">
+                <button id="btnUpdate" onclick="updateTicket()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(37,99,235,0.3)] transition">Update & Notify Customer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="hidden-report-wrapper">
+        <div id="report-render" style="width: 210mm; min-height: 297mm; background: white; color: #0f172a; padding: 15mm; border: 10px solid #ef4444; position: relative; font-family: Arial, sans-serif; box-sizing: border-box;">
+            
+            <div style="display:flex; justify-content:space-between; border-bottom:4px solid #ef4444; padding-bottom:20px; margin-bottom:30px; align-items:center;">
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <img src="https://i.ibb.co/G4xsrr6j/qafx-Ln-R-md.png" alt="Logo" border="0" style="height: 70px; object-fit: contain; border-radius:8px;" crossorigin="anonymous">
+                    <div>
+                        <h1 style="font-size:18px; font-weight:900; margin:0; text-transform:uppercase; color:#0f172a;">CUSTOMER COMPLAINT MANAGEMENT SYSTEM STATEMENT</h1>
+                        <p style="font-size:12px; color:#64748b; font-weight:bold; margin-top:5px; text-transform:uppercase;">Date Generated: <span id="rDate" style="color:#0f172a;">--</span></p>
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <h2 style="font-size:16px; font-weight:900; margin:0; text-transform:uppercase;">Patel Traders</h2>
+                    <p style="font-size:10px; color:#ef4444; font-weight:bold; letter-spacing:2px; margin:0; text-transform:uppercase;">Support HQ</p>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:20px; margin-bottom:30px;">
+                <div style="background:#fef2f2; padding:20px; border-radius:12px; border:1px solid #fecaca; min-width: 250px; border-left: 5px solid #ef4444;">
+                    <p style="font-size:11px; color:#ef4444; font-weight:bold; text-transform:uppercase; margin:0; letter-spacing: 1px;">Overall Complaint Score</p>
+                    <h2 id="rScore" style="font-size:36px; font-weight:900; color:#ef4444; margin:5px 0 0 0;">0</h2>
+                    <p style="font-size:9px; color:#7f1d1d; margin-top:5px; font-style:italic;">* Higher score indicates higher active complaint volume.</p>
+                </div>
+            </div>
+
+            <table style="width:100%; text-align:left; font-size:11px; border-collapse:collapse;">
+                <thead style="border-bottom:2px solid #cbd5e1; color:#475569; text-transform:uppercase; font-size:10px;">
+                    <tr>
+                        <th style="padding:10px 5px;">Date</th>
+                        <th style="padding:10px 5px;">SRN</th>
+                        <th style="padding:10px 5px;">Customer</th>
+                        <th style="padding:10px 5px;">Type</th>
+                        <th style="padding:10px 5px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="rTableBody" style="font-weight:bold; color:#1e293b;">
+                </tbody>
+            </table>
+
+            <div style="margin-top:50px; padding-top:20px; border-top:1px dashed #cbd5e1; text-align:center;">
+                <p style="font-size:10px; font-weight:bold; color:#64748b; text-transform:uppercase; letter-spacing:2px; margin:0;">Digitally Generated System Statement</p>
+                <p style="font-size:9px; color:#ef4444; font-weight:900; margin-top:5px; text-transform:uppercase; letter-spacing:1px;">Confidential Admin Document - Do Not Share</p>
             </div>
         </div>
     </div>
 
     <script>
-        // ✅ Live API URL
-        const CMS_API_URL = "https://script.google.com/macros/s/AKfycbz4Hb7nd0grSl035BDTYurW8WBU_IJZJG_5U4qXpa07l71sAxJiDlPjUYlVq8uePZEC/exec"; 
+        const CMS_API_URL = "https://script.google.com/macros/s/AKfycbzm1jlAaVZX9rkyseoVXmWtItQJv9_JcXOcf7st-s5OBQiSAvpWViXEtigoQPgeZ9U8UA/exec";
+        const PIN = "7314";
         
-        // 🔐 UPDATE: Admin PIN Changed
-        const ADMIN_PIN = "7314";
+        let allTickets = [];
+        let currentPin = "", attempts = parseInt(localStorage.getItem('pt_admin_supp_att') || '0'), lockTimerInterval;
 
-        let allData = [];
-        let currentTicket = null;
+        // --- SECURITY & LOCK LOGIC ---
+        function initSystem() {
+            localStorage.setItem('pt_admin_supp_seen', 'true');
+            let c = document.getElementById('fast-cache'); if(c) c.remove();
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('security-lock').style.display = 'flex';
+            checkLockout();
+        }
 
-        function checkLogin() {
-            if(document.getElementById('adminPass').value === ADMIN_PIN) {
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('dashboardScreen').style.display = 'block';
-                loadData();
-            } else {
-                alert("❌ Access Denied: Incorrect PIN");
-                document.getElementById('adminPass').value = '';
+        window.onload = () => { if(localStorage.getItem('pt_admin_supp_seen') === 'true') initSystem(); };
+
+        function checkLockout() {
+            const lTime = localStorage.getItem('pt_admin_supp_lock');
+            if (lTime) {
+                const rem = Math.floor((parseInt(lTime) - Date.now()) / 1000);
+                if (rem > 0) startLockTimer(rem); 
+                else { localStorage.removeItem('pt_admin_supp_lock'); localStorage.setItem('pt_admin_supp_att', '0'); attempts = 0; }
             }
         }
 
-        async function loadData() {
-            const grid = document.getElementById('dataGrid');
-            const btn = document.getElementById('refreshBtn');
-            btn.innerHTML = "Syncing...";
-            grid.innerHTML = "<div class='col-span-full flex justify-center py-20'><div class='w-8 h-8 border-4 border-[#ff9933] border-t-transparent rounded-full animate-spin'></div></div>";
+        function pressPin(n) {
+            if(localStorage.getItem('pt_admin_supp_lock') && parseInt(localStorage.getItem('pt_admin_supp_lock')) > Date.now()) return;
+            if(currentPin.length < 4) {
+                currentPin += n; updateDots();
+                if(currentPin === PIN) {
+                    document.getElementById('security-lock').style.display = 'none';
+                    document.getElementById('main-app').classList.remove('hidden');
+                    attempts = 0; localStorage.setItem('pt_admin_supp_att', '0');
+                    fetchTickets(); 
+                } else if(currentPin.length === 4) {
+                    attempts++; localStorage.setItem('pt_admin_supp_att', attempts); 
+                    if(attempts >= 5) {
+                        const lUntil = Date.now() + (600 * 1000); // 10 mins
+                        localStorage.setItem('pt_admin_supp_lock', lUntil);
+                        startLockTimer(600);
+                    } else { 
+                        showCustomAlert('error', 'Access Denied', `Incorrect PIN! ${5 - attempts} attempts remaining.`);
+                        clearPin(); 
+                    }
+                }
+            }
+        }
 
+        function startLockTimer(sec) {
+            let t = sec;
+            document.getElementById('numpad').classList.add('locked-screen');
+            document.getElementById('lockStatus').innerText = "SYSTEM LOCKED";
+            document.getElementById('lockStatus').style.color = "#e11d48";
+            clearInterval(lockTimerInterval); 
+            lockTimerInterval = setInterval(() => {
+                t--; document.getElementById('lockMsg').innerText = `Timeout: ${Math.floor(t/60)}m ${t%60}s`;
+                document.getElementById('lockMsg').style.color = "#e11d48";
+                if(t <= 0) { 
+                    clearInterval(lockTimerInterval); 
+                    localStorage.removeItem('pt_admin_supp_lock'); localStorage.setItem('pt_admin_supp_att', '0'); attempts = 0;
+                    document.getElementById('numpad').classList.remove('locked-screen'); 
+                    document.getElementById('lockStatus').innerText = "Vault Locked"; document.getElementById('lockStatus').style.color = "#fff";
+                    document.getElementById('lockMsg').innerText = "Enter Admin PIN"; document.getElementById('lockMsg').style.color = "#ff9933";
+                    clearPin(); 
+                }
+            }, 1000);
+        }
+
+        function updateDots() { document.querySelectorAll('#pinDots div').forEach((d, i) => { d.style.background = i < currentPin.length ? '#ff9933' : 'transparent'; }); }
+        function clearPin() { currentPin = ""; updateDots(); }
+
+        // --- CUSTOM ALERTS ---
+        function showCustomAlert(type, title, msg) {
+            document.getElementById('cm-title').innerText = title; document.getElementById('cm-msg').innerText = msg;
+            document.getElementById('cm-card').className = `glass-card p-8 max-w-sm w-full text-center animate-pop border-t-4 ${type==='success'?'border-emerald-500': type==='warning'?'border-[#ff9933]':'border-rose-500'}`;
+            let iHTML = type === 'success' ? `<div class="w-16 h-16 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-lg"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg></div>` : 
+                        `<div class="w-16 h-16 bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center mx-auto shadow-lg"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></div>`;
+            document.getElementById('cm-icon').innerHTML = iHTML;
+            const m = document.getElementById('custom-modal'); m.style.display = 'flex'; setTimeout(() => m.classList.remove('opacity-0'), 10);
+        }
+        function closeCustomModal() { const m = document.getElementById('custom-modal'); m.classList.add('opacity-0'); setTimeout(() => m.style.display = 'none', 300); }
+
+        // --- DASHBOARD LOGIC ---
+        async function fetchTickets() {
+            const container = document.getElementById('ticketsContainer');
+            container.innerHTML = `<div class="col-span-full text-center py-10"><p class="text-[#ff9933] text-xs font-black uppercase tracking-widest animate-pulse">Decrypting Database...</p></div>`;
+            
             try {
                 const res = await fetch(`${CMS_API_URL}?action=getComplaints&t=${Date.now()}`);
-                const data = await res.json();
-                allData = data.reverse(); 
-                
-                document.getElementById('statPending').innerText = allData.filter(c => c.status === "PENDING").length;
-                document.getElementById('statResolved').innerText = allData.filter(c => c.status === "RESOLVED").length;
-                
-                renderGrid(allData);
-            } catch (e) {
-                grid.innerHTML = "<p class='col-span-full text-center text-rose-500 font-bold'>❌ Connection Error. Unable to fetch data.</p>";
+                const txt = await res.text();
+                if(txt.startsWith("<")) throw new Error("API Blocked");
+                allTickets = JSON.parse(txt).reverse(); // Newest first
+                renderTickets(allTickets);
+            } catch(e) {
+                container.innerHTML = `<div class="col-span-full text-center py-10"><p class="text-rose-500 text-xs font-bold bg-rose-500/10 p-4 rounded-xl inline-block">❌ Failed to load Database. Check Network.</p></div>`;
             }
-            btn.innerHTML = "🔄 Sync Data";
         }
 
-        function filterTickets(status) {
-            if(status === 'ALL') renderGrid(allData);
-            else renderGrid(allData.filter(c => c.status === status));
-        }
+        function renderTickets(data) {
+            const container = document.getElementById('ticketsContainer');
+            let pendC = 0, resC = 0;
+            
+            // 🔴 UPDATE COMPLAINT SCORECARD
+            document.getElementById('sScore').innerText = allTickets.length;
 
-        function renderGrid(data) {
-            const grid = document.getElementById('dataGrid');
             if(data.length === 0) {
-                grid.innerHTML = "<p class='col-span-full text-center text-white/50 py-10 font-bold uppercase tracking-widest'>No records found in this category.</p>";
+                container.innerHTML = `<div class="col-span-full text-center py-10"><p class="text-white/40 text-xs font-bold uppercase tracking-widest">No tickets found.</p></div>`;
+                document.getElementById('sPending').innerText = 0; document.getElementById('sResolved').innerText = 0;
                 return;
             }
 
-            grid.innerHTML = data.map(c => {
-                let color = "orange"; 
-                let statusLabel = "PENDING";
-                
-                if(c.status === "RESOLVED") { color = "emerald"; statusLabel = "SUCCESSFUL"; }
-                else if(c.status === "IN PROGRESS") { color = "blue"; statusLabel = "WORKING"; }
-                else if(c.status === "REJECTED") { color = "rose"; statusLabel = "REJECTED"; }
+            let html = data.map(t => {
+                let stat = String(t.status || "PENDING").toUpperCase();
+                if(stat === "PENDING" || stat === "IN PROGRESS") pendC++;
+                if(stat === "RESOLVED") resC++;
 
-                let displayReason = c.reason ? c.reason : '';
+                let color = "orange";
+                if(stat === "RESOLVED") color = "emerald";
+                else if(stat === "REJECTED") color = "rose";
+                else if(stat === "IN PROGRESS") color = "blue";
+
+                // Check for image
+                let hasImg = (t.attachedImage || t.AttachedImage || t.image) ? `<span class="bg-purple-500/20 text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded text-[8px] font-black uppercase ml-2">📷 Has Photo</span>` : "";
 
                 return `
-                <div class="glass-card p-6 relative overflow-hidden group shadow-lg hover:border-white/20 transition-all">
-                    <div class="absolute left-0 top-0 w-1 h-full bg-${color}-500"></div>
-                    
-                    <div class="flex justify-between items-start mb-4 border-b border-white/5 pb-3">
-                        <span class="bg-${color}-500/10 text-${color}-400 text-[9px] font-black px-3 py-1.5 rounded uppercase tracking-widest border border-${color}-500/20">${statusLabel}</span>
-                        <span class="text-[9px] text-white/40 font-bold tracking-widest">${c.date.split(',')[0]}</span>
+                <div onclick="openTicket('${t.ticket}')" class="bg-white/5 border border-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/10 transition shadow-lg relative overflow-hidden group">
+                    <div class="absolute left-0 top-0 w-1.5 h-full bg-${color}-500 group-hover:w-2 transition-all"></div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-[#ff9933] font-black text-[11px] uppercase tracking-wider">${t.ticket}</h3>
+                        <span class="bg-${color}-500/10 text-${color}-400 text-[8px] font-black px-2 py-1 rounded uppercase border border-${color}-500/20">${stat}</span>
                     </div>
-                    
-                    <p class="text-[9px] text-white/50 uppercase font-black tracking-widest mb-1">SRN / Ticket ID</p>
-                    <h3 class="text-xl font-black text-[#ff9933] mb-3 tracking-widest">${c.ticket}</h3>
-                    
-                    <div class="bg-black/50 p-4 rounded-xl mb-4 border border-white/5">
-                        <p class="text-[10px] text-white/40 font-bold mb-2 uppercase tracking-wider">Customer Details</p>
-                        <p class="text-xs text-white/90 font-bold mb-1">👤 ${c.name}</p>
-                        <p class="text-xs text-white/90 font-bold mb-3">📞 ${c.phone} ${c.email !== 'N/A' ? `| ✉️ ${c.email}` : ''}</p>
-                        <p class="text-[9px] text-[#ff9933] uppercase font-black mb-1 border-t border-white/10 pt-2 mt-2">Issue: ${c.type}</p>
-                        <p class="text-xs text-white/60 italic leading-relaxed line-clamp-3">"${c.description}"</p>
+                    <h4 class="text-white text-xs font-bold truncate mb-1">${t.name} <span class="text-white/30 font-normal">| ${t.phone}</span></h4>
+                    <p class="text-white/60 text-[10px] truncate mb-2">${t.type}</p>
+                    <div class="flex justify-between items-end mt-3 border-t border-white/5 pt-2">
+                        <span class="text-[8px] text-white/30 font-bold">${t.date ? String(t.date).split(',')[0] : '--'}</span>
+                        ${hasImg}
                     </div>
-
-                    ${c.reason ? `
-                        <div class="bg-${color}-500/5 p-3 rounded-lg border border-${color}-500/10 mb-4">
-                            <p class="text-[8px] text-${color}-400 uppercase font-black tracking-widest mb-1">Admin Note Recorded</p>
-                            <p class="text-[11px] text-white/80 font-bold leading-relaxed line-clamp-2">${c.reason}</p>
-                        </div>
-                    ` : ''}
-
-                    <button onclick="openModal('${c.ticket}', '${c.status}', \`${c.reason ? c.reason.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''}\`)" class="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition border border-white/10 text-white">Update Status & Reason</button>
-                </div>
-                `;
+                </div>`;
             }).join('');
+
+            document.getElementById('sPending').innerText = pendC;
+            document.getElementById('sResolved').innerText = resC;
+            container.innerHTML = html;
         }
 
-        // 🛠️ Action Modal Functions
-        function openModal(ticket, currentStatus, currentReason) {
-            currentTicket = ticket;
-            document.getElementById('modTicketId').innerText = ticket;
-            document.getElementById('modStatus').value = currentStatus;
-            
-            let cleanReason = currentReason;
-            if(cleanReason.includes("✅ Manually Verified by Admin: ")) {
-                cleanReason = cleanReason.replace("✅ Manually Verified by Admin: ", "");
+        function filterTickets() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allTickets.filter(t => 
+                (t.ticket && t.ticket.toLowerCase().includes(q)) || 
+                (t.phone && String(t.phone).includes(q)) ||
+                (t.name && t.name.toLowerCase().includes(q))
+            );
+            renderTickets(filtered);
+        }
+
+        // --- 🟢 PDF GENERATOR LOGIC ---
+        async function downloadStatementPDF() {
+            if(allTickets.length === 0) {
+                return showCustomAlert('warning', 'No Data', 'Database is empty. No report to generate.');
             }
+
+            const btn = document.getElementById('btnDownloadPDF');
+            const origText = btn.innerText;
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+
+            try {
+                document.getElementById('rDate').innerText = new Date().toLocaleDateString('en-GB');
+                document.getElementById('rScore').innerText = allTickets.length;
+
+                const tbody = document.getElementById('rTableBody');
+                tbody.innerHTML = allTickets.map(t => {
+                    let stat = String(t.status || "PENDING").toUpperCase();
+                    let color = "#f97316"; // orange
+                    if(stat === "RESOLVED") color = "#10b981"; // green
+                    else if(stat === "REJECTED") color = "#ef4444"; // red
+                    else if(stat === "IN PROGRESS") color = "#3b82f6"; // blue
+
+                    return `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 10px 5px; color:#64748b;">${t.date ? String(t.date).split(',')[0] : '--'}</td>
+                        <td style="padding: 10px 5px; color:#0f172a; font-weight:bold;">${t.ticket}</td>
+                        <td style="padding: 10px 5px; text-transform:capitalize;">${t.name}</td>
+                        <td style="padding: 10px 5px;">${t.type || 'Request'}</td>
+                        <td style="padding: 10px 5px; color:${color}; font-weight:bold;">${stat}</td>
+                    </tr>`;
+                }).join('');
+
+                const wrap = document.getElementById('hidden-report-wrapper');
+                wrap.style.display = 'flex';
+
+                setTimeout(async () => {
+                    const canvas = await html2canvas(document.getElementById('report-render'), { scale: 2, useCORS: true });
+                    const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+                    
+                    var imgWidth = 210; 
+                    var pageHeight = 297;  
+                    var imgHeight = canvas.height * imgWidth / canvas.width;
+                    var heightLeft = imgHeight;
+                    var position = 0;
+
+                    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+
+                    while (heightLeft >= 0) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+
+                    pdf.save(`Complaint_Statement_${Date.now()}.pdf`);
+                    
+                    wrap.style.display = 'none';
+                    btn.innerText = origText; 
+                    btn.disabled = false;
+                    showCustomAlert('success', 'Downloaded', 'Statement PDF extracted securely.');
+                }, 800);
+
+            } catch(e) {
+                showCustomAlert('error', 'Error', 'Failed to generate PDF.');
+                btn.innerText = origText; btn.disabled = false;
+            }
+        }
+
+        // --- TICKET ACTION LOGIC ---
+        let currentEditingTicket = null;
+
+        function openTicket(id) {
+            const t = allTickets.find(x => x.ticket === id);
+            if(!t) return;
+            currentEditingTicket = t.ticket;
+
+            document.getElementById('mSrn').innerText = t.ticket;
+            document.getElementById('mType').innerText = t.type || 'Request';
+            document.getElementById('mName').innerText = t.name || '--';
+            document.getElementById('mPhone').innerText = t.phone || '--';
+            document.getElementById('mDesc').innerText = `"${t.description || '--'}"`;
             
-            document.getElementById('modReason').value = cleanReason;
+            // Handle Image
+            const imgBox = document.getElementById('mImgBox');
+            const imgEl = document.getElementById('mImg');
+            let imgData = t.attachedImage || t.AttachedImage || t.image;
+            if(imgData && imgData.startsWith("data:image")) {
+                imgEl.src = imgData;
+                imgBox.classList.remove('hidden');
+            } else {
+                imgEl.src = "";
+                imgBox.classList.add('hidden');
+            }
+
+            // Set current status & remarks
+            let stat = String(t.status || "PENDING").toUpperCase();
+            let sel = document.getElementById('aStatus');
+            for(let i=0; i<sel.options.length; i++) { if(sel.options[i].value === stat) sel.selectedIndex = i; }
+            
+            let remarks = t.adminRemarks || t['Admin Remarks'] || t.Remarks || t.reason || "";
+            document.getElementById('aRemarks').value = remarks;
+
             document.getElementById('actionModal').style.display = 'flex';
         }
 
-        function closeModal() {
+        function closeActionModal() {
             document.getElementById('actionModal').style.display = 'none';
-            currentTicket = null;
+            currentEditingTicket = null;
         }
 
-        async function saveUpdate() {
-            const newStatus = document.getElementById('modStatus').value;
-            let rawReason = document.getElementById('modReason').value.trim();
-            const btn = document.getElementById('modSaveBtn');
+        async function updateTicket() {
+            if(!currentEditingTicket) return;
+            
+            const btn = document.getElementById('btnUpdate');
+            const stat = document.getElementById('aStatus').value;
+            const rem = document.getElementById('aRemarks').value.trim();
 
-            if(rawReason === '') {
-                return alert("⚠️ Please provide a clear 'Reason' for making this status update.");
+            if(stat !== "PENDING" && rem === "") {
+                return showCustomAlert('warning', 'Remarks Needed', 'Please provide Admin Remarks if you are changing the status.');
             }
 
-            btn.innerText = "Encrypting & Saving...";
+            btn.innerText = "Encrypting & Updating...";
             btn.disabled = true;
-
-            let finalReason = `✅ Manually Verified by Admin: ${rawReason}`;
 
             const payload = {
                 action: "UPDATE_COMPLAINT",
-                ticket: currentTicket,
-                status: newStatus,
-                reason: finalReason
+                ticket: currentEditingTicket,
+                status: stat,
+                adminRemarks: rem
             };
 
             try {
-                await fetch(CMS_API_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: JSON.stringify(payload) 
-                });
+                await fetch(CMS_API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
                 
-                closeModal();
-                loadData(); 
-                
-                setTimeout(() => {
-                    alert(`✅ SUCCESS: SRN ${currentTicket} updated. Customer will now see the verified status.`);
-                }, 500);
+                showCustomAlert('success', 'Updated Successfully', `Ticket ${currentEditingTicket} has been updated. The customer will reflect these changes.`);
+                closeActionModal();
+                fetchTickets(); // Refresh the board
 
-            } catch (e) {
-                alert("❌ Network Error: Failed to update database.");
+            } catch(e) {
+                showCustomAlert('error', 'Update Failed', 'Could not sync with the database. Check your network.');
             }
-            
-            btn.innerText = "Secure Update Database";
+            btn.innerText = "Update & Notify Customer";
             btn.disabled = false;
         }
     </script>
